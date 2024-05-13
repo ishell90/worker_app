@@ -1,0 +1,8 @@
+# Папки ide
+/.idea/
+/.vscode/
+# Конфиг установки
+/.env
+
+/bin/
+/vendor/
