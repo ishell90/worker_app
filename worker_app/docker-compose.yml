@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./Docker/php
+    container_name: ${BACKEND_HOST}
+    #image: moeenbasra/php-fpm-alpine
+    restart: always
+    env_file:
+        - $ENV_FILE
+    volumes:
+      - ${PROJECT_DIR}:/var/www/worker_app
+    networks:
+      - platform
+    depends_on:
+      - db
+
+  db:
+    container_name: ${DB_HOST}
+    image: postgres:16.3-alpine3.20
+    restart: always
+    env_file:
+        - $ENV_FILE
+    networks:
+      - platform
+    ports:
+        - ${DB_EXTERNAL_PORT}:${DB_PORT}
+    volumes:
+        - database:/var/lib/postgresql/data
+
+networks:
+  platform:
+
+volumes:
+    database:
+        driver: local
