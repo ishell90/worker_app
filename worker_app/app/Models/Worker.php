@@ -18,5 +18,6 @@ class Worker extends Model
         'text',
         'is_married',
         'age',
+        'description'
     ];
 }

@@ -2,56 +2,92 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Worker\IndexRequest;
+use App\Http\Requests\Worker\StoreRequest;
+use App\Http\Requests\Worker\UpdateRequest;
 use App\Models\Worker;
 use Illuminate\Http\Request;
 
 class WorkerController extends Controller
 {
-    public function index(): string
+    public function index(IndexRequest $request)
     {
-        return 'Hello World';
+        $data = $request->validated();
+
+        $query = Worker::query();
+
+        if (isset($data['name'])) {
+            $query->where('name', 'like', '%' . $data['name'] . '%');
+        }
+
+        if (isset($data['surname'])) {
+            $query->where('surname', 'like', '%' . $data['surname'] . '%');
+        }
+
+        if (isset($data['email'])) {
+            $query->where('email', 'like', '%' . $data['email'] . '%');
+        }
+
+        if (isset($data['from'])) {
+            $query->where('age', '>=', $data['from']);
+        }
+
+        if (isset($data['to'])) {
+            $query->where('age', '<=', $data['to'] );
+        }
+
+        if (isset($data['description'])) {
+            $query->where('description', 'like', '%' . $data['description'] . '%' );
+        }
+
+        if (isset($data['is_married'])) {
+            $query->where('is_married','=' ,true);
+        }
+
+        $workers = $query->paginate(4);
+        return view('worker.index', compact('workers'));
     }
 
-    public function show()
+    public function show(Worker $worker)
     {
-
-        $workers = Worker::all()->take(3);
-        foreach ($workers as $worker) {
-            dump($worker->toArray());
-        }
+        return view('worker.show', compact('worker'));
     }
 
     public function create()
     {
-        $worker = [
-            'name' => fake()->name,
-            'surname' => fake()->lastName,
-            'age' => fake()->numberBetween(18, 35),
-            'email' => fake()->email,
-            'is_married' => fake()->randomElement([true, false]),
-        ];
-
-        Worker::query()->create($worker);
-
-        print_r('Worker was created');
+        return view('worker.create');
     }
 
-    public function update()
+    public function store(StoreRequest $request)
     {
-        $worker = Worker::query()->inRandomOrder()->first();
+        $data = $request->validated();
+        $data['is_married'] = isset($data['is_married']);
+        Worker::query()->create($data);
 
-        $worker->update([
-            'name' => fake()->name,
-            'surname' => fake()->lastName,
-        ]);
-
-        print_r('Worker was updated');
+        return redirect()->route('workers.index');
     }
 
-    public function delete()
+    public function edit(Worker $worker)
     {
-        $worker = Worker::query()->inRandomOrder()->first()?->delete();
+        return view('worker.edit', compact('worker'));
+    }
 
-        print_r('Worker was deleted');
+    public function update(Worker $worker, UpdateRequest $request)
+    {
+        $data = $request->validated();
+        $data['is_married'] = isset($data['is_married']);
+
+        $worker->update($data);
+
+        $a = Worker::query()->find($worker->id);
+
+        return redirect()->route('workers.show', $a);
+    }
+
+    public function delete(Worker $worker)
+    {
+        $worker->delete();
+
+        return redirect()->route('workers.index');
     }
 }
